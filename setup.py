@@ -11,7 +11,7 @@ setup(
     install_requires = [
                         'sys',
                         'opencv-python',
-                        'PIL.Image',
+                        'PIL',
                         'pytesseract',
                         'argsparse',
                         'pdf2image',
