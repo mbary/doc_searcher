@@ -17,6 +17,7 @@ args = vars(ap.parse_args())
 
 key_word_arguments = args["words"]
 key_word_list = key_word_arguments.split(",")
+key_word_list = [item.lower() for item in key_word_list]
 
 
 '''
@@ -24,16 +25,18 @@ CHeck whether the document provided is in PDF format
 if so, convery the pdf to image
 '''
 
-if args["format"] == "pdf":
+doc_format = args["format"].lower()
+
+if doc_format == "pdf":
 
 
     document = pdf2image.convert_from_path(args["document"], dpi=500)
     doc_dict = {index:pytesseract.image_to_string(page) for index,page in enumerate(document)}
     clean_indexed_pages = [[item for item in enumerate(doc_dict[i].split("\n")) if item[1] != ''] for i in range(len(doc_dict.keys()))]
-    page_dict = {i+1:{index:line for index,line in clean_indexed_pages[i]} for i in range(0,len(clean_indexed_pages))}
+    page_dict = {i+1:{index:line.lower() for index,line in clean_indexed_pages[i]} for i in range(0,len(clean_indexed_pages))}
 
 else:
-    document = args["document"]
+    image = cv2.imread(args["document"] )
 
     # Convert the image to grayscale
 
@@ -52,10 +55,10 @@ else:
     os.remove(filename)
 
     clean = [line for line in enumerate(text.split("\n")) if line[1] != '']
-    page_dict = {index:line for index,line in clean}
+    page_dict = {index:line.lower() for index,line in clean}
 
 
-if args["format"] == "pdf":
+if doc_format == "pdf":
     result_dict = {}
     for page in page_dict.keys():
         for word in key_word_list:
@@ -63,16 +66,16 @@ if args["format"] == "pdf":
             result_dict[word][page] = result_dict[word].get(page,[])
             for index, line in page_dict[page].items():
                 if word in line:
-                    result_dict[word][page].append(index)
+                    result_dict[word][page].append(index+1)
     
     print(result_dict)
 
 
-
 else:
-    result_list = []
-
+    result_dict = {}
     for index,line in page_dict.items():
         for word in key_word_list:
+            result_dict[word] = result_dict.get(word,[])
             if word in line:
-                result_list.append(index)
+                result_dict[word].append(index+1)
+    print(result_dict)
